@@ -1,0 +1,81 @@
+# ============================================================
+# DEEPHPC Fine-Tuning Configuration (QLoRA)
+# ============================================================
+
+# Base model
+model:
+  name: "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+  cache_dir: "data/model_cache"
+  torch_dtype: "float16"     # Load in fp16; QLoRA quantizes to 4-bit
+
+# QLoRA (Quantized LoRA) configuration
+qlora:
+  use_4bit: true             # Enable 4-bit quantization (QLoRA)
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_quant_type: "nf4"  # Normal Float 4 - best for LLMs
+  use_nested_quant: true
+
+# LoRA adapter configuration
+lora:
+  r: 16                      # Rank (higher = more capacity, 16 vs original 8)
+  lora_alpha: 32             # Scaling factor (2x rank is standard)
+  lora_dropout: 0.05
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:            # Attention projection layers
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"            # Added: MLP layers for better adaptation
+    - "up_proj"
+    - "down_proj"
+
+# Dataset
+dataset:
+  docs_path: "data/ulhpc-docs/docs"
+  output_path: "data/qa_dataset.json"
+  min_words: 20
+  max_words: 150
+  train_split: 0.9           # 90% train, 10% val
+  seed: 42
+
+# Tokenization
+tokenization:
+  max_seq_length: 512
+  padding: "max_length"
+  truncation: true
+
+# Training
+training:
+  output_dir: "outputs/finetune/checkpoints"
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 8   # Effective batch size = 8
+  num_train_epochs: 3
+  learning_rate: 2.0e-5
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.03
+  max_grad_norm: 0.3
+  weight_decay: 0.001
+  fp16: true
+  optim: "paged_adamw_8bit"  # Memory-efficient optimizer for QLoRA
+  save_steps: 100
+  logging_steps: 25
+  eval_strategy: "epoch"
+  save_total_limit: 2
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  report_to: "none"
+
+# Inference
+inference:
+  adapter_path: "outputs/finetune/final_adapter"
+  max_new_tokens: 300
+  temperature: 0.1
+  do_sample: false
+
+# Evaluation
+evaluation:
+  test_queries_path: "evaluation/test_queries.json"
+  output_path: "outputs/finetune/results.json"

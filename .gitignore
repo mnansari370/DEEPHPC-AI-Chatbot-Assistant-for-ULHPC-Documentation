@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.so
+
+# Data & models (large files — don't commit to git)
+data/
+outputs/finetune/checkpoints/
+outputs/finetune/final_adapter/
+
+# Keep outputs structure but not the heavy files
+!outputs/.gitkeep
+!outputs/rag/.gitkeep
+!outputs/finetune/.gitkeep
+
+# Logs
+logs/*.out
+logs/*.err
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,43 @@
+# Core ML
+torch==2.1.2
+torchvision==0.16.2
+torchaudio==2.1.2
+
+# HuggingFace ecosystem
+transformers==4.41.1
+tokenizers==0.19.1
+datasets==2.19.1
+peft==0.10.0
+accelerate==0.30.1
+bitsandbytes==0.43.1
+
+# RAG dependencies
+faiss-cpu==1.8.0
+sentence-transformers==2.7.0
+rank-bm25==0.2.2
+
+# Evaluation metrics
+rouge-score==0.1.2
+bert-score==0.3.13
+scikit-learn==1.5.0
+nltk==3.8.1
+
+# Data processing
+markdown==3.6
+beautifulsoup4==4.12.3
+numpy==1.26.4
+pandas==2.2.2
+
+# Config & utilities
+pyyaml==6.0.1
+tqdm==4.66.4
+rich==13.7.1
+loguru==0.7.2
+
+# Visualization
+matplotlib==3.9.0
+seaborn==0.13.2
+
+# Jupyter (for notebooks)
+jupyter==1.0.0
+ipywidgets==8.1.3

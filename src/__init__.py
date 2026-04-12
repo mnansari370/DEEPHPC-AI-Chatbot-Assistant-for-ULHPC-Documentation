@@ -1,0 +1,2 @@
+"""DEEPHPC: Intelligent HPC Documentation Assistant."""
+__version__ = "1.0.0"
