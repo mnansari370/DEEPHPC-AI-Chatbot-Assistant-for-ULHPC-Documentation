@@ -1,0 +1,64 @@
+# ============================================================
+# DEEPHPC RAG Configuration
+# ============================================================
+
+# Documentation source
+docs:
+  repo_url: "https://github.com/ULHPC/ulhpc-docs.git"
+  local_path: "data/ulhpc-docs"
+  docs_subdir: "docs"
+
+# Chunking strategy
+chunking:
+  strategy: "sentence"        # Options: "sentence", "fixed", "recursive"
+  chunk_size: 400             # Target tokens per chunk
+  chunk_overlap: 80           # Overlap between chunks (tokens)
+  min_chunk_words: 20         # Discard chunks shorter than this
+  max_chunk_words: 200        # Discard chunks longer than this
+
+# Embedding model
+embedding:
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"
+  batch_size: 64
+  normalize: true
+
+# FAISS index
+faiss:
+  index_type: "IVF"          # IVF (Inverted File) for large corpora
+  nlist: 10                  # Number of Voronoi cells (best balanced from grid search)
+  nprobe: 5                  # Cells to probe at query time
+  metric: "cosine"
+
+# BM25 retriever
+bm25:
+  k1: 1.5                    # Term frequency saturation
+  b: 0.75                    # Length normalization
+
+# Hybrid retrieval
+retrieval:
+  mode: "hybrid"             # Options: "dense", "sparse", "hybrid"
+  top_k: 5                   # Final number of chunks to return
+  dense_weight: 0.6          # Weight for dense (FAISS) scores
+  sparse_weight: 0.4         # Weight for BM25 scores
+
+# Generation model
+generation:
+  model_name: "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+  max_new_tokens: 300
+  temperature: 0.1
+  do_sample: false
+  device: "cuda"             # "cuda" or "cpu"
+
+# Evaluation
+evaluation:
+  test_queries_path: "evaluation/test_queries.json"
+  output_path: "outputs/rag/results.json"
+  metrics:
+    - "cosine_similarity"
+    - "rouge_l"
+
+# FAISS grid search (for hyperparameter tuning)
+grid_search:
+  nlist_values: [1, 5, 10, 15, 20, 25]
+  nprobe_values: [1, 5, 10, 15, 20, 25]
+  lambda_accuracy: 0.7       # Weight for accuracy in fitness function

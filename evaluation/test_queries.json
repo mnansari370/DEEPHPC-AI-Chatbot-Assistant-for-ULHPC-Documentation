@@ -1,0 +1,42 @@
+[
+  {
+    "question": "What is ULHPC?",
+    "answer": "ULHPC stands for University of Luxembourg High Performance Computing. It is the HPC facility of the University of Luxembourg, providing researchers, students, and staff with access to large-scale computing resources including CPU and GPU clusters for scientific computing, machine learning, and data-intensive research."
+  },
+  {
+    "question": "Who can use the ULHPC cluster?",
+    "answer": "The ULHPC cluster is available to University of Luxembourg researchers, PhD students, Master students, and staff. External collaborators and partners may also be granted access through project-based requests submitted to the HPC team."
+  },
+  {
+    "question": "How do I get an account on ULHPC?",
+    "answer": "To get an ULHPC account, you need to be affiliated with the University of Luxembourg. You should request access through the ULHPC portal by submitting a project request or asking your supervisor to add you to an existing project. The HPC team will verify your eligibility and create your account."
+  },
+  {
+    "question": "How do I connect to the ULHPC cluster using SSH?",
+    "answer": "You can connect to the ULHPC cluster using SSH with the command: ssh <username>@access.uni.lu or ssh <username>@iris-cluster. You need a valid ULHPC account and your SSH public key registered in the ULHPC portal. For first-time users, key-based authentication must be set up in the IdM portal."
+  },
+  {
+    "question": "What job scheduler does ULHPC use?",
+    "answer": "ULHPC uses SLURM (Simple Linux Utility for Resource Management) as its job scheduler. SLURM manages resource allocation and job queuing on the cluster. Users submit jobs using the sbatch command and can monitor them with squeue and sacct."
+  },
+  {
+    "question": "How do I submit a job on ULHPC?",
+    "answer": "To submit a job on ULHPC, create a SLURM batch script specifying your resource requirements (nodes, CPUs, GPUs, memory, time) using #SBATCH directives, then submit it with the command: sbatch your_script.sh. You can check the job status with squeue -u $USER and view output in the generated .out file."
+  },
+  {
+    "question": "How do I load software modules on ULHPC?",
+    "answer": "ULHPC uses the Lmod module system for software management. To list available modules use: module avail. To load a specific module: module load <module_name>. To search for a module: module spider <keyword>. Modules are organized by software name and version, allowing multiple versions to coexist."
+  },
+  {
+    "question": "What GPU resources are available on ULHPC?",
+    "answer": "ULHPC provides several GPU partitions: the gpu partition with NVIDIA Volta V100 GPUs (4 GPUs per node), the hopper partition with NVIDIA Hopper H100 GPUs, and the l40s partition with NVIDIA L40S GPUs. Users can request GPUs in SLURM scripts using --gres=gpu:volta:N or --partition=gpu directives."
+  },
+  {
+    "question": "What is the maximum job walltime on ULHPC?",
+    "answer": "The default maximum walltime on ULHPC is 2 days (2-00:00:00) for most partitions including batch and gpu. The interactive partition has a shorter limit of 2 hours for interactive development sessions. You can set the walltime in your SLURM script with #SBATCH --time=D-HH:MM:SS."
+  },
+  {
+    "question": "How do I transfer files to and from ULHPC?",
+    "answer": "You can transfer files to and from ULHPC using SCP (scp file.txt username@access.uni.lu:~/), SFTP, or Rsync (rsync -avz local_folder/ username@access.uni.lu:~/remote_folder/). For large datasets, the ULHPC team recommends using the dedicated data transfer nodes and GPFS parallel file system for optimal throughput."
+  }
+]
