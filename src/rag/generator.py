@@ -46,11 +46,13 @@ class RAGGenerator:
             torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
             device_map="auto" if self.device == "cuda" else None,
         )
+        # Do NOT pass `device` when the model was loaded with device_map="auto"
+        # (HuggingFace raises ValueError if both device and device_map are set).
+        # The pipeline auto-detects placement from the already-loaded model.
         self.pipe = pipeline(
             "text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
-            device=0 if self.device == "cuda" else -1,
         )
         logger.info("Generator ready.")
 

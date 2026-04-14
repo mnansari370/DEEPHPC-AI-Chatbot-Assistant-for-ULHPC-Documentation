@@ -1,0 +1,102 @@
+{
+  "metrics": {
+    "cosine_similarity": {
+      "mean": 0.2900216347753365,
+      "scores": [
+        0.3009060094496543,
+        0.14765559193542302,
+        0.2123441477095519,
+        0.43500716008271206,
+        0.21031595474493212,
+        0.394873323445939,
+        0.661841819072388,
+        0.32651761568520643,
+        0.18457149972804282,
+        0.02618322589951576
+      ]
+    },
+    "rouge_l": {
+      "mean": 0.19857367157846842,
+      "scores": [
+        0.23728813559322035,
+        0.17054263565891473,
+        0.19148936170212763,
+        0.20657276995305163,
+        0.20618556701030927,
+        0.23728813559322035,
+        0.203921568627451,
+        0.2037037037037037,
+        0.22950819672131148,
+        0.09923664122137406
+      ]
+    },
+    "rouge_1": {
+      "mean": 0.2651567455518949,
+      "scores": [
+        0.4067796610169492,
+        0.23255813953488372,
+        0.2872340425531915,
+        0.30985915492957744,
+        0.288659793814433,
+        0.2937853107344633,
+        0.2588235294117647,
+        0.22222222222222224,
+        0.22950819672131148,
+        0.12213740458015268
+      ]
+    }
+  },
+  "per_query": [
+    {
+      "question": "What is ULHPC?",
+      "prediction": "ULHPC stands for Ultra-Large High-Performance Computing. It refers to a class of supercomputing systems designed to handle extremely large amounts of work simultaneously, often through the use of distributed processing and advanced networking technologies. ULHPC systems are typically used for computationally intensive tasks such as scientific simulations, data analysis, and complex problem-solving, and are characterized by their ability to scale up to meet the demands of high-performance computing environments.",
+      "reference": "ULHPC stands for University of Luxembourg High Performance Computing. It is the HPC facility of the University of Luxembourg, providing researchers, students, and staff with access to large-scale computing resources including CPU and GPU clusters for scientific computing, machine learning, and data-intensive research."
+    },
+    {
+      "question": "Who can use the ULHPC cluster?",
+      "prediction": "ULHPC stands for University of Life Sciences High Performance Computing. It is a supercomputer cluster located at the University of Life Sciences in France. The ULHPC cluster is available for research and teaching purposes to faculty, students, and researchers in various fields of life sciences, including molecular biology, genetics, bioinformatics, and computational biology. The cluster is also used for scientific research and data analysis in various fields, including physics, chemistry, and engineering. The ULHPC cluster is a state-of-the-art supercomputer cluster designed to provide high performance computing capabilities for research and teaching purposes.",
+      "reference": "The ULHPC cluster is available to University of Luxembourg researchers, PhD students, Master students, and staff. External collaborators and partners may also be granted access through project-based requests submitted to the HPC team."
+    },
+    {
+      "question": "How do I get an account on ULHPC?",
+      "prediction": "To get an account on ULHPC, you need to follow these steps:\n\n1. **Visit the ULHPC website**: Go to the official ULHPC website to find the login page.\n\n2. **Create an account**: On the login page, you will see an option to create a new account. Fill in the required details such as email and password.\n\n3. **Log in**: After creating your account, log in using the credentials provided on the login page.\n\n4. **Access resources**: Once logged in, you can access the ULHPC resources through the appropriate web interfaces or command-line tools.\n\nIf you encounter any issues during the process, such as incorrect login credentials or account creation errors, you may need to contact the ULHPC support team for assistance.\n\nFor more detailed information, you can visit the ULHPC website or contact the support team directly.",
+      "reference": "To get an ULHPC account, you need to be affiliated with the University of Luxembourg. You should request access through the ULHPC portal by submitting a project request or asking your supervisor to add you to an existing project. The HPC team will verify your eligibility and create your account."
+    },
+    {
+      "question": "How do I connect to the ULHPC cluster using SSH?",
+      "prediction": "To connect to the ULHPC cluster using SSH, follow these steps:\n\n1. **Verify the ULHPC Cluster is Accessible:**\n   - Open a terminal window and type `ssh -u user@ulhpc` to check if the cluster is accessible. Replace `user@ulhpc` with your actual username.\n\n2. **Check the ULHPC Cluster Availability:**\n   - Open a terminal window and type `ssh -u avail@ulhpc` to check if the cluster is available. Replace `avail@ulhpc` with your actual username.\n\n3. **Log In to the ULHPC Cluster:**\n   - If the cluster is accessible and available, type `ssh -u user@ulhpc` to log in to the ULHPC cluster. Replace `user@ulhpc` with your actual username.\n\n4. **Use the ULHPC Cluster:**\n   - Once logged in, you can use the ULHPC cluster as needed.\n\nNote: If you encounter any issues, ensure that your username is valid and that the ULHPC cluster is properly configured. You may also need to adjust the SSH password or check the cluster's configuration files for further assistance.",
+      "reference": "You can connect to the ULHPC cluster using SSH with the command: ssh <username>@access.uni.lu or ssh <username>@iris-cluster. You need a valid ULHPC account and your SSH public key registered in the ULHPC portal. For first-time users, key-based authentication must be set up in the IdM portal."
+    },
+    {
+      "question": "What job scheduler does ULHPC use?",
+      "prediction": "ULHPC, or University High Performance Computing, typically uses the Job Scheduler module from the HPC environment. The specific Job Scheduler implementation can vary depending on the HPC system and its configuration. For ULHPC, the Job Scheduler module is likely part of the ULHPC Grid Environment, which is designed to provide a scalable and efficient computing environment for research institutions.",
+      "reference": "ULHPC uses SLURM (Simple Linux Utility for Resource Management) as its job scheduler. SLURM manages resource allocation and job queuing on the cluster. Users submit jobs using the sbatch command and can monitor them with squeue and sacct."
+    },
+    {
+      "question": "How do I submit a job on ULHPC?",
+      "prediction": "To submit a job on ULHPC, follow these steps:\n\n1. **Log In**: Ensure you have an account and credentials for ULHPC.\n\n2. **Create Job**: Go to the **Jobs** section and create a new job.\n\n3. **Set Parameters**: Define the job's parameters, such as the resource type (e.g., `hpc`, `slurm`), the number of nodes, and the memory allocation.\n\n4. **Submit Job**: Click the **Submit** button to run the job.\n\n5. **Monitor Job**: Check the job's status and output using the **Job Monitor** feature.\n\n6. **Delete Job**: After the job completes, delete the job from the **Jobs** section.\n\n7. **Log Output**: Review the log files generated by the job for detailed information.\n\nIf you encounter any issues, refer to the ULHPC documentation for troubleshooting steps.",
+      "reference": "To submit a job on ULHPC, create a SLURM batch script specifying your resource requirements (nodes, CPUs, GPUs, memory, time) using #SBATCH directives, then submit it with the command: sbatch your_script.sh. You can check the job status with squeue -u $USER and view output in the generated .out file."
+    },
+    {
+      "question": "How do I load software modules on ULHPC?",
+      "prediction": "To load software modules on ULHPC, you can use the module system provided by the operating system. On Linux systems, you can use the `module` command to load and install modules. For example, to load the `libmodule` module, you can run:\n\n```bash\nmodule load libmodule\n```\n\nThis will install the `libmodule` module in your current environment. You can also use the `module list` command to see a list of available modules and their versions.\n\nOn Windows systems, you can use the `msconfig` command to configure the module system. For example, to load the `libmodule` module, you can run:\n\n```cmd\nmsconfig libmodule\n```\n\nThis will configure the module system to use the `libmodule` module. You can also use the `module list` command to see a list of available modules and their versions.\n\nYou can also use the `module` command to load modules from specific versions. For example, to load the `libmodule` module at version 1.2.3, you can run:\n\n```bash\nmodule load libmodule@1.2.3\n```\n\nThis will install the `libmodule` module at version 1.2.3 in your current environment.\n\nYou can also use the `module` command to load modules from specific versions on Windows systems. For example, to load the `libmodule` module at version 1.2.3, you can",
+      "reference": "ULHPC uses the Lmod module system for software management. To list available modules use: module avail. To load a specific module: module load <module_name>. To search for a module: module spider <keyword>. Modules are organized by software name and version, allowing multiple versions to coexist."
+    },
+    {
+      "question": "What GPU resources are available on ULHPC?",
+      "prediction": "ULHPC provides access to a variety of GPU resources, including NVIDIA GPUs from the A100 to the T400 series. The specific availability of each GPU type depends on the configuration of the ULHPC system. Users are encouraged to check the ULHPC documentation or contact the ULHPC support team for the most up-to-date information on GPU resources available.",
+      "reference": "ULHPC provides several GPU partitions: the gpu partition with NVIDIA Volta V100 GPUs (4 GPUs per node), the hopper partition with NVIDIA Hopper H100 GPUs, and the l40s partition with NVIDIA L40S GPUs. Users can request GPUs in SLURM scripts using --gres=gpu:volta:N or --partition=gpu directives."
+    },
+    {
+      "question": "What is the maximum job walltime on ULHPC?",
+      "prediction": "The maximum job walltime on ULHPC is 3600 seconds (1 hour).",
+      "reference": "The default maximum walltime on ULHPC is 2 days (2-00:00:00) for most partitions including batch and gpu. The interactive partition has a shorter limit of 2 hours for interactive development sessions. You can set the walltime in your SLURM script with #SBATCH --time=D-HH:MM:SS."
+    },
+    {
+      "question": "How do I transfer files to and from ULHPC?",
+      "prediction": "To transfer files to and from ULHPC, you can use the following steps:\n\n1. **Log In**: Ensure you have an account and password for the ULHPC system.\n\n2. **Log In to System**: Use the command `sudo user login` to log in to the ULHPC system.\n\n3. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n4. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n5. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n6. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n7. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n8. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n9. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n10. **Log In to System**: Use the command `sudo user login` again to log in to the ULHPC system.\n\n11. **Log In to System**: Use the command `sudo user login` again to log",
+      "reference": "You can transfer files to and from ULHPC using SCP (scp file.txt username@access.uni.lu:~/), SFTP, or Rsync (rsync -avz local_folder/ username@access.uni.lu:~/remote_folder/). For large datasets, the ULHPC team recommends using the dedicated data transfer nodes and GPFS parallel file system for optimal throughput."
+    }
+  ],
+  "num_queries": 10
+}

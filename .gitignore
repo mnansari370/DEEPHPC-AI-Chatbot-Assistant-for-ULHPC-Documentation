@@ -7,19 +7,17 @@ dist/
 build/
 *.so
 
-# Data & models (large files — don't commit to git)
-data/
-outputs/finetune/checkpoints/
-outputs/finetune/final_adapter/
+# HuggingFace model cache (multi-GB downloads — regenerated automatically)
+data/model_cache/
 
-# Keep outputs structure but not the heavy files
-!outputs/.gitkeep
-!outputs/rag/.gitkeep
-!outputs/finetune/.gitkeep
+# Cloned ULHPC docs repo (545MB — auto-cloned by scripts/prepare_data.py)
+data/ulhpc-docs/
+
+# Fine-tuning intermediate checkpoints (large, final adapter is kept)
+outputs/finetune/checkpoints/
 
 # Logs
-logs/*.out
-logs/*.err
+logs/
 
 # Jupyter
 .ipynb_checkpoints/
