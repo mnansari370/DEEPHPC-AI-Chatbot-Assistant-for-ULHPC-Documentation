@@ -113,6 +113,10 @@ class FineTuner:
             task_type      = TaskType.CAUSAL_LM,
         )
         model = get_peft_model(model, lora_config)
+        # Required when using gradient_checkpointing with LoRA on a frozen base model.
+        # Without this, gradient flow is broken because frozen embedding inputs have
+        # requires_grad=False, which causes backward() to fail.
+        model.enable_input_require_grads()
         model.print_trainable_parameters()
 
         return model, tokenizer
@@ -155,7 +159,8 @@ class FineTuner:
             max_grad_norm               = self.train_cfg.get("max_grad_norm", 0.3),
             weight_decay                = self.train_cfg.get("weight_decay", 0.001),
             fp16                        = self.train_cfg.get("fp16", True),
-            optim                       = self.train_cfg.get("optim", "paged_adamw_8bit"),
+            optim                       = self.train_cfg.get("optim", "adamw_torch"),
+            save_strategy               = self.train_cfg.get("save_strategy", "epoch"),
             save_steps                  = self.train_cfg.get("save_steps", 100),
             logging_steps               = self.train_cfg.get("logging_steps", 25),
             eval_strategy               = self.train_cfg.get("eval_strategy", "epoch") if val_ds else "no",
@@ -164,6 +169,7 @@ class FineTuner:
             metric_for_best_model       = "eval_loss" if val_ds else None,
             report_to                   = "none",
             dataloader_num_workers      = 0,
+            gradient_checkpointing      = True,   # saves ~40% VRAM on 16GB nodes
         )
 
         data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)

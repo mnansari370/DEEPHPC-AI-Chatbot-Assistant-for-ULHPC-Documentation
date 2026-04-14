@@ -24,6 +24,8 @@ cd $SLURM_SUBMIT_DIR
 source /home/users/nmo/miniconda3/etc/profile.d/conda.sh
 conda activate ULHPC_env
 
+export BNB_CUDA_VERSION=120
+
 python scripts/run_finetune.py \
     --config configs/finetune_config.yaml \
     --mode evaluate \

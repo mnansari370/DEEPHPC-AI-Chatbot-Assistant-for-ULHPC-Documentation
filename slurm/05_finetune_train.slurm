@@ -31,6 +31,10 @@ cd $SLURM_SUBMIT_DIR
 source /home/users/nmo/miniconda3/etc/profile.d/conda.sh
 conda activate ULHPC_env
 
+# Tell bitsandbytes to use CUDA 12 libraries (nodes have CUDA 12.7 driver,
+# libcusparse.so.12 not .11)
+export BNB_CUDA_VERSION=120
+
 # Log GPU info
 nvidia-smi
 

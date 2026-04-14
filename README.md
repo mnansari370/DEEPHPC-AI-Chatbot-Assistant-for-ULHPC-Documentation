@@ -1,6 +1,6 @@
-# DEEPHPC — Intelligent HPC Documentation Assistant
+# DEEPHPC: AI Chatbot Assistant for ULHPC Documentation
 
-> **A comparative study of RAG vs. QLoRA Fine-Tuning for domain-specific LLM adaptation on High-Performance Computing documentation.**
+> **A comparative study of Retrieval-Augmented Generation (RAG) vs. LoRA Fine-Tuning for domain-specific LLM adaptation on High-Performance Computing documentation.**
 
 [![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)](https://python.org)
 [![PyTorch 2.1](https://img.shields.io/badge/PyTorch-2.1-orange.svg)](https://pytorch.org)
@@ -11,14 +11,50 @@
 
 ## Overview
 
-DEEPHPC is an AI-powered chatbot that answers natural language questions about the [University of Luxembourg HPC (ULHPC)](https://hpc.uni.lu) cluster — one of the largest HPC systems in Luxembourg. The system adapts the **DeepSeek-R1-Distill-Qwen-1.5B** model using two complementary strategies:
+DEEPHPC is an AI-powered chatbot that answers natural language questions about the [University of Luxembourg HPC (ULHPC)](https://hpc.uni.lu) cluster. The system adapts **DeepSeek-R1-Distill-Qwen-1.5B** using two complementary strategies and compares them end-to-end:
 
-| Approach | Method | Best For |
+| Approach | Method | Key Strength |
 |---|---|---|
-| **RAG** | Hybrid BM25 + FAISS retrieval → DeepSeek generation | Dynamic docs, no retraining |
-| **Fine-Tuning** | QLoRA (4-bit) on curated Q&A pairs | High accuracy, offline use |
+| **RAG** | Hybrid BM25 + FAISS retrieval → DeepSeek generation | No retraining, always up-to-date |
+| **Fine-Tuning** | LoRA (fp16) on curated Q&A pairs | Higher answer precision, offline use |
 
-This project runs natively on the **ULHPC cluster using SLURM**, making it a practical example of running LLM workloads on HPC infrastructure.
+The entire pipeline runs on the **ULHPC cluster via SLURM**, making it a practical end-to-end example of running LLM workloads on HPC infrastructure.
+
+---
+
+## Results
+
+### Final Comparison — RAG vs Fine-Tuning
+
+| Metric | RAG (FAISS+BM25) | Fine-Tuned (LoRA) | Winner |
+|---|---|---|---|
+| Cosine Similarity (TF-IDF) | 0.2816 | **0.2900** | Fine-Tuned (+3.0%) |
+| ROUGE-L F1 | 0.1487 | **0.1986** | Fine-Tuned (+33.6%) |
+| ROUGE-1 F1 | 0.1958 | **0.2652** | Fine-Tuned (+35.4%) |
+
+Fine-tuning outperforms RAG on all metrics. The ROUGE improvement shows the fine-tuned model learned ULHPC-specific vocabulary and answer structure from the training data.
+
+### FAISS Grid Search Results
+
+| Config | Accuracy | Avg Time | Fitness |
+|---|---|---|---|
+| nlist=20, nprobe=1 ✓ | 0.1542 | 0.0114s | **0.1045** (best) |
+| nlist=1, nprobe=20 | 0.1387 | 0.0096s | 0.0942 |
+| nlist=10, nprobe=5 | 0.1340 | 0.0108s | 0.0906 |
+
+Best config: **nlist=20, nprobe=1** (highest fitness balancing accuracy and speed).
+
+### LoRA Fine-Tuning Training Curve
+
+| Epoch | Train Loss | Eval Loss |
+|---|---|---|
+| 1 | 2.6494 | 2.0009 |
+| 2 | 1.6943 | 1.5406 |
+| 3 | 1.4976 | **1.4680** |
+
+- Trainable parameters: 18.5M / 1.8B (1.03%)
+- Training time: ~3.35 hours on NVIDIA Tesla V100 16GB
+- No overfitting — eval loss improves consistently across all 3 epochs
 
 ---
 
@@ -33,17 +69,16 @@ User Question
 │                                                     │
 │  Query → Embedder (all-MiniLM-L6-v2)               │
 │             │                                       │
-│    ┌────────┴────────┐                             │
-│    ▼                 ▼                             │
-│  FAISS IVF        BM25 (Okapi)                    │
-│  (dense)          (sparse)                         │
-│    └────────┬────────┘                             │
+│    ┌────────┴────────┐                              │
+│    ▼                 ▼                              │
+│  FAISS IVF        BM25 (Okapi)                     │
+│  (dense)          (sparse)                          │
+│    └────────┬────────┘                              │
 │             ▼                                       │
-│     RRF Score Fusion (top-5 chunks)               │
+│     RRF Score Fusion (top-5 chunks)                │
 │             │                                       │
 │             ▼                                       │
-│  DeepSeek-R1-Distill-Qwen-1.5B (Generator)        │
-│             │                                       │
+│  DeepSeek-R1-Distill-Qwen-1.5B (Generator)         │
 │             ▼                                       │
 │          Answer                                     │
 └─────────────────────────────────────────────────────┘
@@ -54,27 +89,12 @@ User Question
 │              Fine-Tuning Pipeline                   │
 │                                                     │
 │  ULHPC Markdown Docs → Sentence-Aware Chunking     │
-│       → Q&A Generation (15 templates)              │
+│       → Q&A Generation (10 templates)              │
 │       → Tokenization (512 tokens max)              │
-│       → QLoRA Fine-Tuning (r=16, α=32, NF4)       │
+│       → LoRA Fine-Tuning (r=16, α=32, fp16)       │
 │       → Fine-Tuned DeepSeek-R1 (offline)           │
 └─────────────────────────────────────────────────────┘
 ```
-
----
-
-## Key Improvements Over Baseline
-
-| Feature | Original | DEEPHPC (This Work) |
-|---|---|---|
-| Chunking | Fixed 1000-char | **Sentence-aware** with configurable overlap |
-| Retrieval | Dense FAISS only | **Hybrid: BM25 + FAISS** (RRF fusion) |
-| Fine-Tuning | Plain LoRA (r=8) | **QLoRA** (4-bit NF4, r=16, + MLP layers) |
-| Q&A Templates | 2 templates | **15 diverse templates** |
-| Evaluation | Cosine similarity only | **ROUGE-L + Cosine + BERTScore** |
-| Code Structure | Single notebook | **Modular Python package** |
-| HPC Integration | Google Colab | **SLURM scripts for ULHPC** |
-| Config | Hardcoded | **YAML config files** |
 
 ---
 
@@ -83,40 +103,54 @@ User Question
 ```
 deephpc/
 ├── configs/
-│   ├── rag_config.yaml          # RAG hyperparameters
-│   └── finetune_config.yaml     # QLoRA training config
+│   ├── rag_config.yaml           # RAG hyperparameters (nlist=20, nprobe=1)
+│   └── finetune_config.yaml      # LoRA training config (r=16, α=32)
 ├── src/
 │   ├── data/
-│   │   └── prepare_dataset.py   # Doc parsing, chunking, Q&A generation
+│   │   └── prepare_dataset.py    # Doc parsing, sentence-aware chunking, Q&A generation
 │   ├── rag/
-│   │   ├── embedder.py          # SentenceTransformer encoding
-│   │   ├── retriever.py         # Hybrid BM25+FAISS with RRF fusion
-│   │   ├── generator.py         # DeepSeek response generation
-│   │   └── pipeline.py          # End-to-end RAG orchestration
+│   │   ├── embedder.py           # SentenceTransformer encoding
+│   │   ├── retriever.py          # Hybrid BM25+FAISS with RRF fusion
+│   │   ├── generator.py          # DeepSeek response generation
+│   │   └── pipeline.py           # End-to-end RAG orchestration
 │   ├── finetune/
-│   │   ├── dataset.py           # Tokenization & dataset building
-│   │   ├── train.py             # QLoRA training loop
-│   │   └── inference.py         # LoRA adapter loading & inference
+│   │   ├── dataset.py            # Tokenization & dataset building
+│   │   ├── train.py              # LoRA training loop
+│   │   └── inference.py          # LoRA adapter loading & inference
 │   └── utils/
-│       ├── metrics.py           # ROUGE-L, Cosine, BERTScore
-│       └── logging_utils.py     # Structured logging
+│       ├── metrics.py            # ROUGE-L, Cosine, BERTScore
+│       └── logging_utils.py      # Structured logging
 ├── scripts/
-│   ├── prepare_data.py          # CLI: clone docs + generate dataset
-│   ├── run_rag.py               # CLI: build index / evaluate / query
-│   ├── run_finetune.py          # CLI: train / evaluate / query
-│   └── evaluate_all.py          # CLI: RAG vs FT comparison
+│   ├── prepare_data.py           # CLI: clone docs + generate dataset
+│   ├── run_rag.py                # CLI: build index / evaluate / query
+│   ├── run_finetune.py           # CLI: train / evaluate / query
+│   └── evaluate_all.py           # CLI: RAG vs FT comparison
 ├── slurm/
-│   ├── 00_setup_env.slurm       # Install dependencies
-│   ├── 01_prepare_data.slurm    # Generate dataset
-│   ├── 02_build_rag_index.slurm # Build FAISS+BM25 index
-│   ├── 03_rag_grid_search.slurm # FAISS hyperparameter search
-│   ├── 04_rag_evaluate.slurm    # RAG evaluation
-│   ├── 05_finetune_train.slurm  # QLoRA training (GPU)
-│   ├── 06_finetune_evaluate.slurm # Fine-tune evaluation
-│   └── 07_compare_models.slurm  # Side-by-side comparison
+│   ├── 00_setup_env.slurm        # Install dependencies
+│   ├── 01_prepare_data.slurm     # Generate dataset
+│   ├── 02_build_rag_index.slurm  # Build FAISS+BM25 index
+│   ├── 03_rag_grid_search.slurm  # FAISS hyperparameter search
+│   ├── 04_rag_evaluate.slurm     # RAG evaluation
+│   ├── 05_finetune_train.slurm   # LoRA training (GPU)
+│   ├── 06_finetune_evaluate.slurm# Fine-tune evaluation
+│   └── 07_compare_models.slurm   # Side-by-side comparison
 ├── evaluation/
-│   └── test_queries.json        # 10 ULHPC ground-truth Q&A pairs
-├── setup.sh                     # One-shot environment setup
+│   └── test_queries.json         # 10 ULHPC ground-truth Q&A pairs
+├── data/
+│   ├── qa_train.json             # 335 training Q&A pairs (generated)
+│   ├── qa_val.json               # 38 validation Q&A pairs (generated)
+│   └── qa_dataset.json           # Full dataset (373 pairs)
+├── outputs/
+│   ├── rag/
+│   │   ├── results.json          # RAG evaluation results
+│   │   ├── grid_search.json      # FAISS hyperparameter search results
+│   │   └── index/                # FAISS + BM25 index files
+│   ├── finetune/
+│   │   ├── results.json          # Fine-tuned model evaluation results
+│   │   └── final_adapter/        # Saved LoRA adapter weights (71MB)
+│   └── comparison/
+│       └── comparison.json       # Full RAG vs Fine-Tuned comparison
+├── setup.sh                      # One-shot environment setup
 └── requirements.txt
 ```
 
@@ -124,14 +158,19 @@ deephpc/
 
 ## Quick Start
 
-### 1. Environment Setup
+### 1. Prerequisites
+
+- ULHPC account with access to GPU partition (Volta V100 or better)
+- Miniconda installed at `~/miniconda3`
+- Python 3.10
+
+### 2. Environment Setup (run once)
 
 ```bash
-# Clone this repo
-git clone <your-repo-url>
-cd deephpc
+git clone https://github.com/mnansari370/DEEPHPC-AI-Chatbot-Assistant-for-ULHPC-Documentation.git
+cd DEEPHPC-AI-Chatbot-Assistant-for-ULHPC-Documentation
 
-# Create conda environment (Python 3.10 required)
+# Create conda environment
 conda create -n ULHPC_env python=3.10 -y
 conda activate ULHPC_env
 
@@ -139,136 +178,68 @@ conda activate ULHPC_env
 bash setup.sh
 ```
 
-### 2. Prepare Data
+### 3. Run the Full Pipeline via SLURM
 
 ```bash
-# Clone ULHPC docs and generate Q&A dataset
-python scripts/prepare_data.py \
-    --config configs/finetune_config.yaml \
-    --rag-config configs/rag_config.yaml
-```
-
-This will:
-- Clone the [ULHPC documentation repo](https://github.com/ULHPC/ulhpc-docs)
-- Parse all `.md` files with sentence-aware chunking
-- Generate ~900+ instruction-following Q&A pairs
-- Save 90/10 train/val split to `data/`
-
-### 3. RAG Pipeline
-
-```bash
-# Build the hybrid retrieval index
-python scripts/run_rag.py --config configs/rag_config.yaml --mode build_index
-
-# Run FAISS hyperparameter grid search
-python scripts/run_rag.py --config configs/rag_config.yaml --mode grid_search \
-    --test-queries evaluation/test_queries.json
-
-# Full evaluation with generation
-python scripts/run_rag.py --config configs/rag_config.yaml --mode evaluate \
-    --test-queries evaluation/test_queries.json
-
-# Ask a question interactively
-python scripts/run_rag.py --config configs/rag_config.yaml --mode query \
-    --question "How do I submit a GPU job on ULHPC?"
-```
-
-### 4. Fine-Tuning (QLoRA)
-
-```bash
-# Train (requires GPU with ≥16GB VRAM)
-python scripts/run_finetune.py --config configs/finetune_config.yaml \
-    --mode train \
-    --train-data data/qa_train.json \
-    --val-data data/qa_val.json
-
-# Evaluate fine-tuned model
-python scripts/run_finetune.py --config configs/finetune_config.yaml \
-    --mode evaluate \
-    --test-queries evaluation/test_queries.json
-```
-
-### 5. Compare Both Models
-
-```bash
-python scripts/evaluate_all.py \
-    --rag-config configs/rag_config.yaml \
-    --ft-config  configs/finetune_config.yaml \
-    --test-queries evaluation/test_queries.json \
-    --output-dir outputs/comparison
-```
-
----
-
-## Running on ULHPC with SLURM
-
-The recommended way to run this project is via SLURM job submission on the ULHPC cluster.
-
-```bash
-# Step 0: One-time setup (run once on login node)
+# Step 0: Install dependencies (once, ~10 min)
 sbatch slurm/00_setup_env.slurm
 
-# Step 1: Prepare dataset
+# Step 1: Clone ULHPC docs + generate Q&A dataset (~5 min, CPU)
 sbatch slurm/01_prepare_data.slurm
 
-# Step 2: Build RAG index (CPU node sufficient)
+# Step 2: Build FAISS + BM25 index (~5 min, CPU)
 sbatch slurm/02_build_rag_index.slurm
 
-# Step 3: Grid search for best FAISS params (GPU)
+# Step 3: FAISS hyperparameter grid search (~30 min, GPU)
 sbatch slurm/03_rag_grid_search.slurm
 
-# Step 4: RAG evaluation (GPU)
+# Step 4: RAG evaluation with generation (~60-90 min, GPU)
 sbatch slurm/04_rag_evaluate.slurm
 
-# Step 5: Fine-tune with QLoRA (GPU, ~6-8 hours on Volta V100)
+# Step 5: LoRA fine-tuning (~3-4h on V100 16GB, GPU)
 sbatch slurm/05_finetune_train.slurm
 
-# Step 6: Evaluate fine-tuned model
+# Step 6: Fine-tuned model evaluation (~30-60 min, GPU)
 sbatch slurm/06_finetune_evaluate.slurm
 
-# Step 7: Compare both models
+# Step 7: Side-by-side comparison
 sbatch slurm/07_compare_models.slurm
 ```
 
-Monitor jobs with `squeue -u $USER` and view logs in `logs/`.
+Monitor jobs: `squeue -u $USER` | Logs: `tail -f logs/<jobname>_<JOBID>.err`
 
-**GPU partitions available on ULHPC:**
-- `gpu` — NVIDIA Volta V100 (4 GPUs/node) — default
-- `hopper` — NVIDIA Hopper H100 — fastest
-- `l40s` — NVIDIA L40S — good for inference
+### 4. Ask Questions Interactively
+
+```bash
+conda activate ULHPC_env
+
+# Ask the RAG pipeline
+python scripts/run_rag.py --config configs/rag_config.yaml \
+    --mode query --question "How do I submit a GPU job on ULHPC?"
+
+# Ask the fine-tuned model
+python scripts/run_finetune.py --config configs/finetune_config.yaml \
+    --mode query --question "How do I submit a GPU job on ULHPC?"
+```
 
 ---
 
-## Results
+## Dataset
 
-### RAG — FAISS Hyperparameter Grid Search
+The dataset is generated automatically from the [ULHPC documentation](https://github.com/ULHPC/ulhpc-docs):
 
-| Metric | Best Config | Score |
+| Split | Pairs | Source |
 |---|---|---|
-| Accuracy (Cosine) | nlist=25, nprobe≥10 | ~0.3339 |
-| Speed | nlist=20, nprobe=1 | ~0.00013s |
-| Balanced ✓ | nlist=10, nprobe=5 | Best trade-off |
+| Train | 335 | `data/qa_train.json` |
+| Validation | 38 | `data/qa_val.json` |
+| Full | 373 | `data/qa_dataset.json` |
 
-### RAG vs Fine-Tuning Comparison
-
-| Aspect | RAG | Fine-Tuning (QLoRA) |
-|---|---|---|
-| Avg Cosine Similarity | ~0.33 | ~0.80+ (on known queries) |
-| Response Latency | 0.1–1.2ms (retrieval) | <1s (inference) |
-| Training Time | None | ~6-8h (Volta V100) |
-| Setup Cost | Low (CPU possible) | Medium (needs GPU) |
-| Flexibility | High (update docs instantly) | Low (retrain to update) |
-| Offline Use | No (needs index) | Yes |
-
-### Training Progress (QLoRA Fine-Tuning)
-
-```
-Initial Loss:  ~2.5
-Final Loss:    ~1.4
-Epochs:        3
-Steps:         ~867
-Training Time: ~6.5h (NVIDIA L4 / Volta V100)
-```
+**Generation process:**
+1. Clone ULHPC markdown documentation
+2. Parse with sentence-aware chunking (400-word chunks, 80-word overlap)
+3. Filter by quality (20–150 words, no URLs, low code ratio)
+4. Apply one of 10 instruction templates per chunk
+5. 90/10 train/val split with deduplication
 
 ---
 
@@ -280,30 +251,51 @@ Training Time: ~6.5h (NVIDIA L4 / Volta V100)
 |---|---|
 | Architecture | Decoder-only Transformer |
 | Parameters | ~1.5 billion |
-| Tokenizer | SentencePiece (BPE) |
 | Context Window | 4096 tokens |
-| Training Objective | Causal Language Modeling |
 
-**QLoRA Configuration:**
+**LoRA Configuration:**
 
 | Parameter | Value |
 |---|---|
-| Quantization | 4-bit NF4 |
-| LoRA Rank (r) | 16 |
-| LoRA Alpha (α) | 32 |
-| Target Modules | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj |
+| Rank (r) | 16 |
+| Alpha (α) | 32 |
 | Dropout | 0.05 |
-| Optimizer | Paged AdamW 8-bit |
-| Trainable Parameters | <1% of total |
+| Target Modules | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj |
+| Precision | fp16 |
+| Optimizer | AdamW |
+| Trainable Parameters | 18.5M / 1.8B (1.03%) |
+
+**RAG Configuration:**
+
+| Component | Value |
+|---|---|
+| Embedder | `all-MiniLM-L6-v2` (384-dim) |
+| FAISS Index | IVF (nlist=20, nprobe=1) |
+| BM25 | Okapi BM25 (k1=1.5, b=0.75) |
+| Fusion | Reciprocal Rank Fusion (k=60) |
+| Top-K chunks | 5 |
+| Dense weight | 0.6 |
+| Sparse weight | 0.4 |
 
 ---
 
 ## Technical Highlights
 
-- **Hybrid Retrieval (RRF):** Combines FAISS dense similarity scores with BM25 term-frequency scores using Reciprocal Rank Fusion — essential for handling both semantic queries ("tell me about authentication") and keyword queries ("sbatch options")
-- **Sentence-Aware Chunking:** Unlike fixed-character splitting, our chunker preserves sentence boundaries and uses configurable word-count limits, reducing semantic fragmentation
-- **QLoRA:** 4-bit NF4 quantization reduces GPU memory footprint by ~4× compared to full precision, enabling fine-tuning a 1.5B model on a single V100 GPU
-- **Multi-Metric Evaluation:** ROUGE-L (structural overlap), Cosine Similarity (TF-IDF semantic), and optionally BERTScore (deep semantic similarity)
+- **Hybrid Retrieval (RRF):** Combines FAISS dense scores with BM25 sparse scores using Reciprocal Rank Fusion — handles both semantic queries ("tell me about authentication") and keyword queries ("sbatch --gres flag")
+- **Sentence-Aware Chunking:** Splits on sentence boundaries rather than fixed character counts, preserving semantic units and reducing fragmentation
+- **FAISS Grid Search:** Automated sweep over nlist × nprobe parameter space using a fitness function balancing accuracy and retrieval speed (λ=0.7)
+- **LoRA Fine-Tuning:** 1.03% trainable parameters, gradient checkpointing enabled — trains on a 16GB V100 in ~3.5 hours
+- **Multi-Metric Evaluation:** ROUGE-L (structural overlap), ROUGE-1 (unigram precision), and TF-IDF Cosine Similarity
+
+---
+
+## GPU Partitions on ULHPC
+
+| Partition | GPU | VRAM | Notes |
+|---|---|---|---|
+| `gpu` | NVIDIA Volta V100 | 16–32GB | Default, used in this project |
+| `hopper` | NVIDIA Hopper H100 | 80GB | Fastest, recommended for larger models |
+| `l40s` | NVIDIA L40S | 48GB | Good for inference |
 
 ---
 
@@ -322,8 +314,9 @@ Training Time: ~6.5h (NVIDIA L4 / Volta V100)
 
 1. Lewis et al. (2020). *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.* NeurIPS 2020.
 2. Hu et al. (2021). *LoRA: Low-Rank Adaptation of Large Language Models.* ICLR 2022.
-3. Karpukhin et al. (2020). *Dense Passage Retrieval for Open-Domain QA.* EMNLP 2020.
-4. Dettmers et al. (2023). *QLoRA: Efficient Finetuning of Quantized LLMs.* NeurIPS 2023.
+3. Dettmers et al. (2023). *QLoRA: Efficient Finetuning of Quantized LLMs.* NeurIPS 2023.
+4. Karpukhin et al. (2020). *Dense Passage Retrieval for Open-Domain QA.* EMNLP 2020.
+5. Cormack & Clarke (2009). *Reciprocal Rank Fusion outperforms Condorcet and individual rank learning methods.* SIGIR 2009.
 
 ---
 

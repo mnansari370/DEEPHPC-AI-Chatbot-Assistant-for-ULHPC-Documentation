@@ -25,6 +25,12 @@ cd $SLURM_SUBMIT_DIR
 source /home/users/nmo/miniconda3/etc/profile.d/conda.sh
 conda activate ULHPC_env
 
+export BNB_CUDA_VERSION=120
+
+# faiss-cpu 1.8.0 was compiled against numpy 1.x; the bitsandbytes upgrade
+# chain pulled numpy 2.2.6 which breaks faiss. Pin back to original version.
+pip install -q numpy==1.26.4 --force-reinstall
+
 python scripts/evaluate_all.py \
     --rag-config configs/rag_config.yaml \
     --ft-config configs/finetune_config.yaml \
